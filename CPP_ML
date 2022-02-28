@@ -1,0 +1,96 @@
+我觉得自己做的CPP的模型挺好用的，可以取代其它乱七八糟的模型
+这个部分可以作为lncRNA编码肽的这个项目的后续一个补充挺好的
+
+###############################################################
+几个feature包括：
+一：从aaindex提取的一些特征（见R代码）
+二：使用iLearn提取的，基于氨基酸序列的一些特征（AAC,TPC,CTDC,DPC,DDE）
+三：使用ipc2做的等电点的预测
+
+#######################以下是R代码###############################
+
+all<-read.csv('all_cpp_dataset.csv')
+all_seq_filter<-read.csv('all_cpp_dataset_filter.csv')
+stats <- sapply(all_seq_filter$seq, FUN=function(x) AAstat(s2c(x), plot=FALSE))
+prop_mean <- sapply(all_seq_filter$seq, FUN=function(x) c(lapply(aaindex, FUN=function(y) mean(y$I[aaa(s2c(x))], na.rm=TRUE)), Length=getLength(x), PMW=pmw(s2c(x)), PI=computePI(s2c(x)), unlist(stats["Prop",x])))
+#aaindex特征
+prop_mean<-as.data.frame(t(prop_mean))
+
+ipc<-read.csv('ccp_ipc_out.csv') #ipc2预测等电点的结果
+
+ipc<-ipc[match(rownames(prop_mean),ipc$seq),]
+ipc$seq_2<-rownames(prop_mean)
+
+prop_mean$ipc<-ipc$X3.400.22x60
+prop_mean=as.data.frame(lapply(prop_mean,as.numeric))
+
+library('impute')
+knnimpexp<-impute.knn(as.matrix(prop_mean),k=10,rowmax = 0.5)
+knnimpexp<-knnimpexp$data
+
+prop_mean<-as.data.frame(knnimpexp)
+
+AAC<-read.csv('AAC.csv',header = F)
+colnames(AAC)<-paste0('AAC_',1:ncol(AAC))
+DPC<-read.csv('DPC.csv',header = F)
+colnames(DPC)<-paste0('DPC_',1:ncol(DPC))
+DDE<-read.csv('DDE.csv',header = F)
+colnames(DDE)<-paste0('DDE_',1:ncol(DDE))
+TPC<-read.csv('TPC.csv',header = F)
+colnames(TPC)<-paste0('TPC_',1:ncol(TPC))
+CTDC<-read.csv('CTDC.csv',header = F)
+colnames(CTDC)<-paste0('CTDC_',1:ncol(CTDC))
+
+all_feature<-cbind(AAC,TPC,CTDC,DPC,DDE) #iLearn提取的基于氨基酸序列的特征
+all_feature$seq<-all$seq
+
+all_seq_filter<-read.csv('all_cpp_dataset_filter.csv')
+all<-all_seq_filter[match(ipc$seq_2,all_seq_filter$seq),]
+
+all_feature<-all_feature[match(all$seq,all_feature$seq),]
+
+pred<-cbind(prop_mean,all_feature)
+pred<-pred[,-ncol(pred)]
+
+pred[is.na(pred)] <- 0
+
+#pred_rf <- pred[,match(colnames(rfFit[["trainingData"]][2:ncol(rfFit[["trainingData"]])]),colnames(pred))]
+
+library('caret')
+nzv <- nearZeroVar(pred)
+filteredDescr <- pred[, -nzv]
+
+pred<-filteredDescr
+pred$group<-all$cpp
+pred<-pred[!is.na(pred$group),] #为什么会有这么多NA，有点没有想明白，具体哪里有问题需要后续处理一下
+
+inTraining <- createDataPartition(pred$group, p = .7, list = FALSE)
+training <- pred[ inTraining,]
+testing  <- pred[-inTraining,]
+
+fitControl <- trainControl(method = "repeatedcv", summaryFunction =twoClassSummary ,#multiClassSummary,
+                           number = 10,repeats =10,
+                           classProbs = TRUE)
+rfFit <- train(group ~ ., data = training, method = "rf", trControl = fitControl, 
+               tuneLength = 10,metric = "ROC")
+
+importance = varImp(rfFit,scale = FALSE)
+importance
+
+rf.probs_1= predict(rfFit,testing) 
+rf.probs_2= predict(rfFit,testing,type = "prob")
+testing$group<-factor(testing$group)
+level<-levels(testing$group)
+dat<-data.frame(obs=factor(testing$group),
+                pred=factor(rf.probs_1),
+                cpp = rf.probs_2$cpp)
+
+dat$non_cpp <- (1-dat$cpp)
+twoClassSummary(dat, lev = level) #ROC：0.98，Sens：0.93，Spec：0.95，这个结果我非常满意了，感觉比文献里面的还要高出不少
+
+library('pROC')
+rf.ROC = roc(response = testing$group,
+             predictor = rf.probs_2$cpp,
+             levels = levels(testing$group))
+plot(rf.ROC,type = "S",col = "blue")
+g <- ggroc(rf.ROC)
