@@ -2,8 +2,7 @@
 
 最近在学keras什么的，一边在折腾python一边在学习深度学习算法（主要是CNN什么的）,然后正好有google colab这样一个平台嘛，应该好好的应用起来
 
-a_demo_for_peptide_pl  
--------  
+## a_demo_for_peptide_pl  
 
 a_demo_for_peptide_pl,是一段我在google colab上写的代码，使用肽的序列信息预测等电点的回归模型。使用了包括one-hot化的序列信息，一批氨基酸信息（12个，乱七八糟的），AAC氨基酸组成信息，汇聚成3X50X50的三维矩阵（我只考虑学习和预测50个氨基酸长度以下的肽）
 
