@@ -1,6 +1,6 @@
-# my_deep_learning
+# for_my_deep_learning
 
-最近在学keras什么的，一边在折腾python一边在学习深度学习算法（主要是CNN什么的）
+最近在学keras什么的，一边在折腾python一边在学习深度学习算法（主要是CNN什么的）,然后正好有google colab这样一个平台嘛，应该好好的应用起来
 
 a_demo_for_peptide_pl  
 -------  
