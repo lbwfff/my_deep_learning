@@ -22,4 +22,5 @@ ps:100次迭代的话mae可以到0.127的状态，已经接近IPC2.0的表现了
 
 ## Biological_Image.ipynb
 
-随手做了一个图像分类的模型，数据来自Cai, L., Wang, Z., Kulathinal, R., Kumar, S., & Ji, S. (2021). Deep Low-Shot Learning for Biological Image Classification and Visualization From Limited Training Samples. IEEE transactions on neural networks and learning systems, PP, 10.1109/TNNLS.2021.3106831. Advance online publication. https://doi.org/10.1109/TNNLS.2021.3106831
+随手做了一个图像分类的模型，数据来自10.1109/TNNLS.2021.3106831. ，是一个果蝇还是什么胚胎发育时期的数据我没有看具体的文章，这个做出来效果没有很好。
+不过也有可能是因为我只做了20次迭代有关，图像的尺寸稍微大了一点，显存就爆炸了，只能用batch_size=32来训练
