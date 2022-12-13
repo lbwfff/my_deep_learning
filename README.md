@@ -24,4 +24,4 @@ ps:100次迭代的话mae可以到0.127的状态，已经接近IPC2.0的表现了
 
 随手做了一个图像分类的模型，数据来自Cai, L., Wang, Z., Kulathinal, R., Kumar, S., & Ji, S. (2021). Deep Low-Shot Learning for Biological Image Classification and Visualization From Limited Training Samples. IEEE transactions on neural networks and learning systems, PP, 10.1109/TNNLS.2021.3106831. Advance online publication. https://doi.org/10.1109/TNNLS.2021.3106831
 
-简单用CNN训练了一下，ACC直接到1了，然后我都不知道要怎么继续往下做了
+简单用CNN训练了一下，ACC直接到1了，然后我都不知道要怎么继续往下做了。然后我在想是不是因为我都lable用了onehot，所以输出和label没对应上才导致ACC都是1的？
